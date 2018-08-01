@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
+    <display-name>MyDaily Diaries Logs</display-name>
+    <!-- Enable UTF8  -->
+    <filter>
+        <filter-name>encodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- To avoid setting ENV variables in production, prod is the default profile -->
+    <context-param>
+        <param-name>spring.profiles.default</param-name>
+        <param-value>prod</param-value>
+    </context-param>
+    <context-param>
+        <param-name>spring.current.profile</param-name>
+        <param-value>#{environment.getActiveProfiles().length == 0? environment.getDefaultProfiles()[0] : environment.getActiveProfiles()[0]}
+        </param-value>
+    </context-param>
+    <!-- to escape the values set in all input fields -->
+    <context-param>
+        <param-name>defaultHtmlEscape</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <!-- spring dispatcher servlet -->
+    <servlet>
+        <servlet-name>spring-dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+
+        <!-- if there is no handler for the request (404), throw an exception -->
+        <init-param>
+            <param-name>throwExceptionIfNoHandlerFound</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <!-- To avoid setting ENV variables in production, prod is the default profile -->
+        <init-param>
+            <param-name>spring.profiles.default</param-name>
+            <param-value>prod</param-value>
+        </init-param>
+        <!-- dispatch OPTION requests-->
+        <init-param>
+            <param-name>dispatchOptionsRequest</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>spring-dispatcher</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+    <!-- default mapping for static files -->
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.css</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.js</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.json</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.jpg</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.ttf</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.woff</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.woff2</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.gif</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.png</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.map</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.svg</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/assets/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/css/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/fonts/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/js/*</url-pattern>
+    </servlet-mapping>
+    <!--&lt;!&ndash; Context loader for external xml configuration files &ndash;&gt;-->
+    <!--<listener>-->
+        <!--<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>-->
+    <!--</listener>-->
+    <!--<listener>-->
+        <!--&lt;!&ndash; the following line is used to avoid: No thread-bound request found: Are you referring to request attributes outside of an actual web request, or processing a request outside of the originally receiving thread &ndash;&gt;-->
+        <!--<listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>-->
+    <!--</listener>-->
+    <!-- filter the multipart filter -->
+    <filter>
+        <filter-name>MultipartFilter</filter-name>
+        <filter-class>org.springframework.web.multipart.support.MultipartFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>MultipartFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- spring security chain filter -->
+    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- session configuration -->
+
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+            <!-- Enable the next line when using HTTPs only -->
+            <!--<secure>true</secure>-->
+        </cookie-config>
+    </session-config>
+</web-app>
