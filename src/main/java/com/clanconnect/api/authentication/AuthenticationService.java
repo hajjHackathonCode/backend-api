@@ -1,10 +1,9 @@
 package com.clanconnect.api.authentication;
 
-import com.clanconnect.model.User;
-import com.clanconnect.repository.UserRepository;
+import com.clanconnect.api.model.User;
+import com.clanconnect.api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;

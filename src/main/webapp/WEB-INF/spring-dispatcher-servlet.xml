@@ -24,7 +24,7 @@
         </property>
     </bean>
 
-    <bean id="encryptor" class="com.clanconnect.utils.Encryptor">
+    <bean id="encryptor" class="com.clanconnect.api.utils.Encryptor">
         <property name="algorithm" value="AES"/>
         <property name="secretKey" value="${app.secret}" />
     </bean>

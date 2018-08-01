@@ -1,6 +1,6 @@
 package com.clanconnect.api.authentication;
 
-import com.clanconnect.model.User;
+import com.clanconnect.api.model.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.authentication.BadCredentialsException;

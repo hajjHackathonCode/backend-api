@@ -10,7 +10,7 @@ import com.clanconnect.api.model.Credential;
 import com.clanconnect.api.model.LoginResponse;
 import com.clanconnect.api.model.UserInfo;
 import com.clanconnect.api.validator.CredentialValidator;
-import com.clanconnect.model.User;
+import com.clanconnect.api.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;

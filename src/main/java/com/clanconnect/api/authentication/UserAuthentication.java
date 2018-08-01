@@ -1,6 +1,6 @@
 package com.clanconnect.api.authentication;
 
-import com.clanconnect.model.User;
+import com.clanconnect.api.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 

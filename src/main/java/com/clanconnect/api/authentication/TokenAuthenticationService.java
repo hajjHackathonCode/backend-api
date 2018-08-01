@@ -1,7 +1,7 @@
 package com.clanconnect.api.authentication;
 
-import com.clanconnect.model.User;
-import com.clanconnect.utils.Encryptor;
+import com.clanconnect.api.model.User;
+import com.clanconnect.api.utils.Encryptor;
 import org.owasp.esapi.ESAPI;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
