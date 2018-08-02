@@ -12,7 +12,7 @@
     <mvc:annotation-driven/>
 
     <!--<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">-->
-        <!--<property name="location" value="classpath:config.properties"/>-->
+        <!--<property name="lastLocation" value="classpath:config.properties"/>-->
     <!--</bean>-->
 
     <bean id="properties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">

@@ -13,4 +13,6 @@ public interface VisitorRepository extends MongoRepository<Visitor, ObjectId>
 {
     @Query("{beaconId: {$in: ?0}}")
     List<Visitor> findByBeaconIdIn(List<String> beaconIds);
+
+    Visitor findByBeaconId(String beaconIds);
 }

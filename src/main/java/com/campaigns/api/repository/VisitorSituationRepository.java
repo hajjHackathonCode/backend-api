@@ -13,13 +13,17 @@ import java.util.List;
 @Repository
 public interface VisitorSituationRepository extends MongoRepository<VisitorSituation, ObjectId>
 {
-    VisitorSituation findByVisitor(Visitor visitor);
+    @Query("{visitor.beaconId: ?0}")
+    VisitorSituation findByVisitorBeaconId(String beaconId);
 
     @Query("{visitor: {$in: ?0}}")
     List<VisitorSituation> findByVisitorIn(List<Visitor> visitors);
 
     @Query("{visitor.groupId: ?0}")
     List<VisitorSituation> findByGroupId(ObjectId groupId);
+
+    @Query("{visitor.groupId: ?0, situationStatus: ?1}")
+    List<VisitorSituation> findByGroupIdAndSituationStatus(ObjectId groupId, SituationStatus situationStatus);
 
     List<VisitorSituation> findAllBySituationStatus(SituationStatus situationStatus);
 }

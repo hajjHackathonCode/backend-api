@@ -225,4 +225,10 @@ public class Utils
         else
             throw new CustomException(ErrorCode.UPDATE_OPERATION_FAILED);
     }
+
+    public static Long getPeriod(Date start)
+    {
+        Date current = new Date();
+        return current.getTime() - start.getTime();
+    }
 }

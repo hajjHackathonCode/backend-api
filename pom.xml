@@ -5,7 +5,7 @@
     <artifactId>ClanConnect-api</artifactId>
     <packaging>war</packaging>
     <version>1.0.0</version>
-    <name>ClanConnectApi</name>
+    <name>HajjConnect</name>
     <url>http://maven.apache.org</url>
     <properties>
         <spring.version>4.3.5.RELEASE</spring.version>
@@ -188,6 +188,6 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>ClanConnectApi</finalName>
+        <finalName>HajjConnect</finalName>
     </build>
 </project>

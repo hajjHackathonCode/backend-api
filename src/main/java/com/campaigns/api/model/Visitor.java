@@ -8,21 +8,18 @@ import com.campaigns.api.utils.ObjectIdDeserializer;
 import com.campaigns.api.utils.ObjectIdSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.*;
-import org.springframework.data.annotation.Version;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import javax.annotation.Nonnegative;
-import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-//@RequiredArgsConstructor
+@EqualsAndHashCode(of = "beaconId")
 @Document(collection = "visitors")
 public class Visitor
 {
@@ -33,8 +30,10 @@ public class Visitor
     private String firstName;
     private String lastName;
     private String beaconId;
+    @JsonDeserialize(using = ObjectIdDeserializer.class)
+    @JsonSerialize(using = ObjectIdSerializer.class)
     private ObjectId groupId;
-    private Byte[] image;
+    private String image;
     private Contact contact;
     private EmergencyContact emergencyContact;
     private MedicalInfo medicalInfo;
