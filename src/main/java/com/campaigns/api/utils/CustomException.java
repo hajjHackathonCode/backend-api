@@ -9,7 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustomException extends Throwable
+public class CustomException extends Exception
 {
     private ErrorCode errorCode;
+    private String customMessage;
+
+    public CustomException(ErrorCode errorCode)
+    {
+        this.errorCode = errorCode;
+        this.customMessage = null;
+    }
 }

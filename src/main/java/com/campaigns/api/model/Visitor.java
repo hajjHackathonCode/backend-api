@@ -16,12 +16,13 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.annotation.Nonnegative;
 import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Document(collection = "visitors")
 public class Visitor
 {
@@ -29,20 +30,11 @@ public class Visitor
     @JsonDeserialize(using = ObjectIdDeserializer.class)
     @JsonSerialize(using = ObjectIdSerializer.class)
     private ObjectId id;
-    @NonNull
     private String firstName;
-    @NonNull
     private String lastName;
-    @NonNull
-    @Indexed(unique = true)
     private String beaconId;
-    @NonNull
+    private ObjectId groupId;
     private Byte[] image;
-    @Indexed
-    @NonNull
-    @DBRef
-    private Group group;
-
     private Contact contact;
     private EmergencyContact emergencyContact;
     private MedicalInfo medicalInfo;

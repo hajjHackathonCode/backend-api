@@ -50,7 +50,8 @@ public class GlobalControllerAdvice
 
         String errorCode = generateErrorCode();
         logger.error(Logger.EVENT_FAILURE, "ERROR CODE: " + errorCode, exception);
-        return new ResponseEntity<>("{ \"errorMessage\":\"Duplicate Key\",\"errorCode\":\"" + errorCode + "\"  }", HttpStatus.CONFLICT);
+//        return new ResponseEntity<>("{ \"errorMessage\":\"Duplicate Key\",\"errorCode\":\"" + errorCode + "\"  }", HttpStatus.CONFLICT);
+        return new ResponseEntity<>("{ \"errorMessage\":\"Duplicate Key\",\"errorCode\":\"" + exception + "\"  }", HttpStatus.CONFLICT);
 
     }
 
@@ -99,24 +100,24 @@ public class GlobalControllerAdvice
      * Handle any other Exeptions and return error and HttpStatus.INTERNAL_SERVER_ERROR
      */
 
+    @ExceptionHandler({CustomException.class})
+    public ResponseEntity<String> customErrorResponse(CustomException exception)
+    {
+        String errorCode = generateErrorCode();
+        logger.error(Logger.EVENT_FAILURE, "ERROR CODE: " + errorCode + ", MSG:" + (exception.getCustomMessage() != null ? exception.getCustomMessage() : ""), exception);
+        return new ResponseEntity<>(exception.toString(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler({MailAuthenticationException.class, Exception.class})
     public ResponseEntity<String> generalErrorResponse(Exception exception)
     {
 
         String errorCode = generateErrorCode();
         logger.error(Logger.EVENT_FAILURE, "ERROR CODE: " + errorCode, exception);
-        return new ResponseEntity<>("{ \"errorMessage\":\"General Error\",\"errorCode\":\"" + errorCode + "\"  }", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("{ \"errorMessage\":\"General Error\",\"errorCode\":\"" + exception + "\"  }", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 
-    @ExceptionHandler({CustomException.class})
-    public ResponseEntity<String> generalErrorResponse(CustomException exception)
-    {
-        String errorCode = generateErrorCode();
-        logger.error(Logger.EVENT_FAILURE, "ERROR CODE: " + errorCode, exception);
-        return new ResponseEntity<>(exception.toString(), HttpStatus.BAD_REQUEST);
-
-    }
 
     /**
      * @return System generated error code to be used for investigation

@@ -7,6 +7,7 @@ import com.campaigns.api.repository.GroupRepository;
 import com.campaigns.api.repository.VisitorRepository;
 import com.campaigns.api.utils.CustomException;
 import com.campaigns.api.utils.ErrorCode;
+import com.campaigns.api.utils.JsonBody;
 import com.campaigns.api.utils.Utils;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,45 +41,71 @@ public class AdminController
         return ResponseEntity.ok(groupRepository.findAll());
     }
 
-    @GetMapping("/groups/${id}")
+    @GetMapping("/groups/{id}")
     public ResponseEntity<Group> getGroup(@PathVariable ObjectId id)
     {
         return ResponseEntity.ok(groupRepository.findOne(id));
     }
 
     @PostMapping(value = "/groups/add", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Boolean> addGroup(@RequestBody Group group) throws CustomException
+    public ResponseEntity<?> addGroup(@RequestBody Group group) throws CustomException
     {
         return Utils.checkMongoSave(groupRepository.save(group), true);
     }
 
     @PostMapping("/users/addusers")
-    public ResponseEntity<Boolean> addBeacons(@RequestBody List<Visitor> visitors) throws CustomException
+    public ResponseEntity<?> addBeacons(@RequestBody List<Visitor> visitors) throws CustomException
     {
+        HashMap<String, String> duplicateTester = new LinkedHashMap<>();
+
+        List<String> beaconIds = visitors.stream().map(Visitor::getBeaconId).collect(Collectors.toList());
+
+        String duplicatedBeaconId = null;
+        for (String beaconId : beaconIds)
+        {
+            try
+            {
+                duplicatedBeaconId = beaconId;
+                duplicateTester.put(beaconId, beaconId);
+            }
+            catch (Exception ignored)
+            {
+                throw new CustomException(ErrorCode.DUPLICATE_BEACON_ID, duplicatedBeaconId);
+            }
+
+        }
+
         return Utils.checkMongoSave(this.visitorRepository.save(visitors), true);
     }
 
     @PostMapping("/groups/removegeofence")
-
-    public ResponseEntity<String> removeGeoFence(ObjectId id, ObjectId fenceId) throws CustomException
+    public ResponseEntity<?> removeGeoFence(@RequestBody RemoveGeoFenceRequest req) throws CustomException
     {
-        Group group = groupRepository.findOne(id);
+        Group group = groupRepository.findOne(req.getId());
+
+        ObjectId fenceId = req.getFenceId();
 
         if (group != null && group.getTimedGeoFences() != null)
         {
-            List<TimedGeoFence> timedGeoFences = group.getTimedGeoFences().stream().filter(f -> !f.getId().equals(fenceId)).collect(Collectors.toList());
+            List<TimedGeoFence> timedGeoFences = new ArrayList<>();
+
+
+            for (TimedGeoFence timedGeoFence : group.getTimedGeoFences())
+            {
+                if (!timedGeoFence.getId().equals(fenceId))
+                {
+                    timedGeoFences.add(timedGeoFence);
+                }
+            }
 
             group.setTimedGeoFences(timedGeoFences);
-
-            Group saved = groupRepository.save(group);
-
-            return Utils.checkMongoSave(saved, fenceId.toHexString());
+            groupRepository.save(group);
         }
-        return ResponseEntity.ok(fenceId.toHexString());
+        return ResponseEntity.ok(new JsonBody<>(fenceId.toHexString()));
     }
 
     @PostMapping("/groups/addgeofence")
-    public ResponseEntity<String> addGeoFence(TimedGeoFence timedGeoFence) throws CustomException
+    public ResponseEntity<?> addGeoFence(@RequestBody TimedGeoFence timedGeoFence) throws CustomException
     {
         Group group = groupRepository.findOne(timedGeoFence.getId());
 
@@ -89,6 +118,7 @@ public class AdminController
             if (timedGeoFences == null)
                 timedGeoFences = new ArrayList<>();
 
+            timedGeoFence.setId(fenceId);
             timedGeoFences.add(timedGeoFence);
 
             group.setTimedGeoFences(timedGeoFences);

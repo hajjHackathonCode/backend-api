@@ -206,18 +206,22 @@ public class Utils
         }
     }
 
-    public static <T, K> ResponseEntity<T> checkMongoSave(K save, T successReponse) throws CustomException
+    public static <T, K> ResponseEntity<?> checkMongoSave(K save, T successReponse) throws CustomException
     {
+        JsonBody<T> jsonBody = new JsonBody<>(successReponse);
+
         if (save != null)
-            return ResponseEntity.ok(successReponse);
+            return ResponseEntity.ok(jsonBody);
         else
             throw new CustomException(ErrorCode.UPDATE_OPERATION_FAILED);
     }
 
-    public static <T, K> ResponseEntity<T> checkMongoSave(List<K> save, T successReponse) throws CustomException
+    public static <T, K> ResponseEntity<?> checkMongoSave(List<K> save, T successReponse) throws CustomException
     {
+        JsonBody<T> jsonBody = new JsonBody<>(successReponse);
+
         if (save != null)
-            return ResponseEntity.ok(successReponse);
+            return ResponseEntity.ok(jsonBody);
         else
             throw new CustomException(ErrorCode.UPDATE_OPERATION_FAILED);
     }
