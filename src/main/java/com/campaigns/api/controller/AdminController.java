@@ -107,6 +107,9 @@ public class AdminController
     @PostMapping("/groups/addgeofence")
     public ResponseEntity<?> addGeoFence(@RequestBody TimedGeoFence timedGeoFence) throws CustomException
     {
+        Utils.debug("update add geo fence", null);
+        Utils.logObject(timedGeoFence);
+
         Group group = groupRepository.findOne(timedGeoFence.getId());
 
         if (group != null)

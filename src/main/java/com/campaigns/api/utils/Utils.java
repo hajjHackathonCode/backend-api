@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.owasp.esapi.ESAPI;
+import org.owasp.esapi.Logger;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 
@@ -230,5 +232,29 @@ public class Utils
     {
         Date current = new Date();
         return current.getTime() - start.getTime();
+    }
+
+
+    public static void debug(Object msg, Exception exception)
+    {
+        if (exception == null) exception = new Exception();
+
+        String errorMsg = "DEBUG " + exception.getStackTrace()[0] + " -> " + msg + " ORIGINAL EXCEPTION: " + exception.getMessage();
+
+        System.out.println(errorMsg);
+        logger.debug(Logger.EVENT_UNSPECIFIED, errorMsg);
+    }
+
+    private static Logger logger = ESAPI.getLogger(Utils.class);
+
+    public static void logObject(Serializable timedGeoFence)
+    {
+        try
+        {
+            debug(transferSerializableToJsonString(timedGeoFence), null);
+        }
+        catch (IOException ignored)
+        {
+        }
     }
 }

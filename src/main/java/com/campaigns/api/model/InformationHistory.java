@@ -14,4 +14,6 @@ public class InformationHistory
     private int seq;
     private Date date;
     private String information;
+    private String senderImage;
+    private String senderName;
 }

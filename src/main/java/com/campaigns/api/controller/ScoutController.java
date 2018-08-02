@@ -11,6 +11,7 @@ import com.campaigns.api.utils.JsonBody;
 import com.campaigns.api.utils.Utils;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,15 @@ import java.util.List;
 @RestController
 public class ScoutController
 {
+
+    @Value("${APP_MODE:}")
+    private String appMode;
+
+    @Value("${sender.image:}")
+    private String senderImage;
+
+    @Value("${sender.name:}")
+    private String senderName;
 
     private final GroupRepository groupRepository;
     private final VisitorSituationRepository visitorSituationRepository;
@@ -86,6 +96,27 @@ public class ScoutController
         return ResponseEntity.ok(visitorRepository.findByBeaconId(beaconId));
     }
 
+    @PostMapping("/users/visitor/{beaconId}/name")
+    public ResponseEntity<?> postVisitorName(@PathVariable String beaconId, @RequestParam String firstName, @RequestParam String lastName) throws CustomException
+    {
+        Visitor visitor = visitorRepository.findByBeaconId(beaconId);
+
+        visitor.setFirstName(firstName);
+        visitor.setLastName(lastName);
+
+        return Utils.checkMongoSave(visitorRepository.save(visitor), true);
+    }
+
+    @PostMapping("/users/visitor/{beaconId}/image")
+    public ResponseEntity<?> postVisitorImage(@PathVariable String beaconId, @RequestParam String image) throws CustomException
+    {
+        Visitor visitor = visitorRepository.findByBeaconId(beaconId);
+
+        visitor.setImage(image);
+
+        return Utils.checkMongoSave(visitorRepository.save(visitor), true);
+    }
+
     @GetMapping("/users/situation/{beaconId}")
     public ResponseEntity<?> getSituation(@PathVariable String beaconId) throws CustomException
     {
@@ -111,10 +142,10 @@ public class ScoutController
 
         if (situation.getInformationHistory() == null) situation.setInformationHistory(new ArrayList<>());
 
-
         int seq = situation.getInformationHistory().size();
         seq++;
-        InformationHistory informationHistory = new InformationHistory(seq, new Date(), reportLostRequest.getMessage());
+
+        InformationHistory informationHistory = new InformationHistory(seq, new Date(), reportLostRequest.getMessage(), senderImage, senderName);
 
         situation.getInformationHistory().add(informationHistory);
 
@@ -170,12 +201,12 @@ public class ScoutController
             return JsonBody.ok(true);
     }
 
-
     @PostMapping("/users/updateLocations")
     public ResponseEntity<?> updateUserLocations(@RequestBody UpdateUserLocationRequest updateUserLocationRequest) throws CustomException
     {
+        Utils.debug("in update location", null);
+        Utils.logObject(updateUserLocationRequest);
 
-        System.out.println("in update location");
         String lat = updateUserLocationRequest.getLat();
         String lon = updateUserLocationRequest.getLon();
         List<String> beaconsIds = updateUserLocationRequest.getBeaconsIds();
@@ -195,8 +226,34 @@ public class ScoutController
             // for each visitor check is he in the geo fence lastLocation of the current time.
             for (Visitor visitor : visitors)
             {
-                //get geo fence of the visitor
 
+                VisitorSituation visitorSituation = visitorSituations.stream().filter(f -> f.getVisitor().equals(visitor)).findFirst().orElse(null);
+                if (visitorSituation == null)
+                {
+                    visitorSituation = new VisitorSituation(ObjectId.get(), visitor, geoPoint, SituationStatus.Normal, null, null, null);
+                    visitorSituations.add(visitorSituation);
+                }
+                else
+                {
+                    visitorSituation.setLastLocation(geoPoint);
+                }
+
+                // NOTE: This if block is for the demo only. In production it will be ignored
+                if ("demo".equalsIgnoreCase(appMode))
+                {
+                    Utils.debug("running in demo mode", new Exception());
+
+                    if ("out".equalsIgnoreCase(updateUserLocationRequest.getDir()))
+                    {
+                        visitorSituation.setSituationStatus(SituationStatus.Lost);
+                        visitorSituation.setLostStart(new Date());
+                        visitorSituation.setLastLocation(geoPoint);
+                        Utils.debug("situation of the visitor became lost", new Exception());
+                        continue;
+                    }
+                }
+
+                //get geo fence of the visitor
                 Group group = groups.stream().filter(g -> g.getId().equals(visitor.getGroupId())).findFirst().orElse(null);
 
                 if (group != null)
@@ -205,17 +262,6 @@ public class ScoutController
 
                     if (geoFence != null && geoFence.getGeoPoints() != null)
                     {
-                        VisitorSituation visitorSituation = visitorSituations.stream().filter(f -> f.getVisitor().equals(visitor)).findFirst().orElse(null);
-
-                        if (visitorSituation == null)
-                        {
-                            visitorSituation = new VisitorSituation(ObjectId.get(), visitor, geoPoint, SituationStatus.Normal, null, null, null);
-                            visitorSituations.add(visitorSituation);
-                        }
-                        else
-                        {
-                            visitorSituation.setLastLocation(geoPoint);
-                        }
 
 
                         //check if the visitor is NOT inside the geo fence of the group in the current time
@@ -252,8 +298,8 @@ public class ScoutController
                     }
                     else
                     {
-//                        throw new CustomException(ErrorCode.CLAN_MISS_CURRENT_GEO_FENCE);
-                        System.out.println(ErrorCode.CLAN_MISS_CURRENT_GEO_FENCE);
+//                        throw new CustomException(ErrorCode.GROUP_MISS_CURRENT_GEO_FENCE);
+                        System.out.println(ErrorCode.GROUP_MISS_CURRENT_GEO_FENCE);
                     }
                 }
                 else
