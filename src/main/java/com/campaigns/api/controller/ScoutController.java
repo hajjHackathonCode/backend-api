@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class ScoutController
@@ -30,7 +31,7 @@ public class ScoutController
     @Value("${sender.image:}")
     private String senderImage;
 
-    @Value("${sender.name:}")
+    @Value("${sender.name:حسن ايوب}")
     private String senderName;
 
     private final GroupRepository groupRepository;
@@ -216,28 +217,15 @@ public class ScoutController
             GeoPoint geoPoint = new GeoPoint(Double.parseDouble(lat), Double.parseDouble(lon));
 
             //save user date
-            List<Visitor> visitors = this.visitorRepository.findByBeaconIdIn(beaconsIds);
             List<Group> groups = this.groupRepository.findAll();
 
             Date currentTime = new Date();
 
-            List<VisitorSituation> visitorSituations = visitorSituationRepository.findByVisitorIn(visitors);
+            List<VisitorSituation> visitorSituations = this.getAndRemoveSituation(beaconsIds, geoPoint);
 
             // for each visitor check is he in the geo fence lastLocation of the current time.
-            for (Visitor visitor : visitors)
+            for (VisitorSituation visitorSituation : visitorSituations)
             {
-
-                VisitorSituation visitorSituation = visitorSituations.stream().filter(f -> f.getVisitor().equals(visitor)).findFirst().orElse(null);
-                if (visitorSituation == null)
-                {
-                    visitorSituation = new VisitorSituation(ObjectId.get(), visitor, geoPoint, SituationStatus.Normal, null, null, null);
-                    visitorSituations.add(visitorSituation);
-                }
-                else
-                {
-                    visitorSituation.setLastLocation(geoPoint);
-                }
-
                 // NOTE: This if block is for the demo only. In production it will be ignored
                 if ("demo".equalsIgnoreCase(appMode))
                 {
@@ -254,7 +242,7 @@ public class ScoutController
                 }
 
                 //get geo fence of the visitor
-                Group group = groups.stream().filter(g -> g.getId().equals(visitor.getGroupId())).findFirst().orElse(null);
+                Group group = groups.stream().filter(g -> g.getId().equals(visitorSituation.getVisitor().getGroupId())).findFirst().orElse(null);
 
                 if (group != null)
                 {
@@ -262,8 +250,6 @@ public class ScoutController
 
                     if (geoFence != null && geoFence.getGeoPoints() != null)
                     {
-
-
                         //check if the visitor is NOT inside the geo fence of the group in the current time
                         if (!geoPolygonServices.coordinateIsInsidePolygon(geoPoint, geoFence.getGeoPoints()))
                         {
@@ -293,7 +279,6 @@ public class ScoutController
                         {
                             visitorSituation.setSituationStatus(SituationStatus.Normal);
                             visitorSituation.setLostStart(null);
-
                         }
                     }
                     else
@@ -312,6 +297,73 @@ public class ScoutController
         }
         else
             throw new CustomException(ErrorCode.INPUT_INVALID);
+    }
+
+    private List<VisitorSituation> getAndRemoveSituation(List<String> beaconIds, GeoPoint geoPoint) throws CustomException
+    {
+
+        if (beaconIds == null || beaconIds.size() == 0)
+            throw new CustomException(ErrorCode.INPUT_INVALID);
+
+
+        List<Visitor> visitors = visitorRepository.findByBeaconIdIn(beaconIds);
+        List<VisitorSituation> situations = visitorSituationRepository.findByVisitorBeaconIdIn(beaconIds);
+        visitorSituationRepository.delete(situations);
+
+
+        List<VisitorSituation> cleanSituations = new ArrayList<>();
+
+        // any beacon id that does not have situation, add situation for it as normal
+        for (String beaconId : beaconIds)
+        {
+            List<VisitorSituation> foundSituations = situations.stream().filter(s -> beaconId.equalsIgnoreCase(s.getVisitor().getBeaconId())).collect(Collectors.toList());
+
+            boolean situationNotFound = foundSituations.size() == 0;
+            boolean situationDuplicate = foundSituations.size() > 1;
+
+            if (situationNotFound)
+            {
+                Visitor visitor = visitors.stream().filter(f -> f.getBeaconId().equalsIgnoreCase(beaconId)).findFirst().orElse(null);
+                VisitorSituation visitorSituation = new VisitorSituation(ObjectId.get(), visitor, geoPoint, SituationStatus.Normal, null, null, null);
+                cleanSituations.add(visitorSituation);
+            }
+            else if (situationDuplicate)
+            {
+                SituationStatus situationStatus = null;
+                Date lostStart = null;
+                GeoPoint lostPoint = null;
+
+                for (VisitorSituation foundSituation : foundSituations)
+                {
+                    if (foundSituation.getSituationStatus().equals(SituationStatus.Lost))
+                    {
+                        situationStatus = SituationStatus.Lost;
+                        lostStart = foundSituation.getLostStart();
+                        lostPoint = foundSituation.getLastLocation();
+                    }
+                    else if (foundSituation.getSituationStatus().equals(SituationStatus.Warning) && !SituationStatus.Lost.equals(situationStatus))
+                    {
+                        situationStatus = SituationStatus.Lost;
+                        lostStart = foundSituation.getLostStart();
+                        lostPoint = foundSituation.getLastLocation();
+                    }
+                    else if (foundSituation.getSituationStatus().equals(SituationStatus.Normal) && !SituationStatus.Warning.equals(situationStatus))
+                    {
+                        situationStatus = SituationStatus.Normal;
+                        lostStart = null;
+                        lostPoint = null;
+                    }
+                }
+
+                Visitor visitor = visitors.stream().filter(f -> f.getBeaconId().equalsIgnoreCase(beaconId)).findFirst().orElse(null);
+                VisitorSituation visitorSituation = new VisitorSituation(ObjectId.get(), visitor, lostPoint, situationStatus, null, lostStart, null);
+                cleanSituations.add(visitorSituation);
+            }
+            else
+                cleanSituations.add(foundSituations.get(0));
+        }
+
+        return cleanSituations;
     }
 
 }

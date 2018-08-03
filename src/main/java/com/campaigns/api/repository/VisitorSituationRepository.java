@@ -19,6 +19,9 @@ public interface VisitorSituationRepository extends MongoRepository<VisitorSitua
     @Query("{visitor: {$in: ?0}}")
     List<VisitorSituation> findByVisitorIn(List<Visitor> visitors);
 
+    @Query("{visitor.beaconId: {$in: ?0}}")
+    List<VisitorSituation> findByVisitorBeaconIdIn(List<String> visitorsBeaconId);
+
     @Query("{visitor.groupId: ?0}")
     List<VisitorSituation> findByGroupId(ObjectId groupId);
 
